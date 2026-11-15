@@ -5,3 +5,4 @@ ignore:
   - deploy.sh
   - README.md
   - art
+  - curseforge
