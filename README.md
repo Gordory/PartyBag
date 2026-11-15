@@ -1,61 +1,64 @@
 # Party Bag
 
-Аддон для WoW Forever (`Interface: 16001`). Каждый участник группы рассылает скрытыми addon-сообщениями
-содержимое своих сумок (`itemID → количество`). При наведении на предмет в тултипе видно, у кого из группы
-он есть и сколько, — удобно собирать неполные стаки у одного игрока.
+A WoW Forever addon (`Interface: 16001`). Every group member broadcasts the contents of their bags
+(`itemID → count`) via hidden addon messages. Hovering an item shows who in the group carries it and how many,
+which makes it easy to gather half-stacks on one player.
 
-Аддон должен стоять у всех, чьи сумки нужно видеть.
+Everyone whose bags you want to see must have the addon installed.
 
-## Как работает
+## How it works
 
-- Сканируются сумки 0–4 (без банка).
-- После изменения сумок (с задержкой 2 с) отправляется полный снимок, если он изменился.
-  Снимок режется на куски ≤ 255 байт (`S;ver;seq;idx;total;id:n,...`).
-- При входе в группу или `/reload` аддон рассылает запрос `R;ver`, и все в ответ присылают свои снимки.
-- Когда кто-то уходит из группы, его данные удаляются; при выходе из группы удаляются все.
+- Scans bags 0–4 (bank is not included).
+- After bags change (debounced by 2 s), sends a full snapshot if it differs from the last one sent.
+  Snapshots are split into chunks of ≤ 255 bytes (`S;ver;seq;idx;total;id:n,...`).
+- On joining a group or `/reload`, broadcasts a request `R;ver`; everyone replies with their snapshot.
+- Data for a player is dropped when they leave the group; all data is dropped when you leave.
 
-## Команды
+## Commands
 
-- `/partybag` или `/pbag` — от кого получены данные
-- `/partybag sync` — запросить данные заново
+- `/partybag` or `/pbag` — list players whose data has been received
+- `/partybag sync` — request data again
 
-## Деплой
+## Localization
+
+Strings use [AceLocale-3.0](https://www.wowace.com/projects/ace3): `Locales/enUS.lua` is the default, other
+`Locales/<locale>.lua` files override it, and missing keys fall back to English. To add a language, copy
+`enUS.lua`, change the locale code (drop the `true`), translate, and list the file in `PartyBag.toc`.
+
+## Libraries
+
+`Libs/` is not tracked: the packager fetches LibStub and AceLocale-3.0 from the `externals` in `.pkgmeta`.
+For a local checkout, download the same paths into `Libs/`.
+
+## Lint
 
 ```sh
-./deploy.sh              # → /Volumes/Data/Games/World of Warcraft/_forever_/Interface/AddOns/PartyBag
-DRY_RUN=1 ./deploy.sh    # только показать изменения
-./deploy.sh _classic_era_  # в другую версию клиента
+brew install luacheck
+luacheck .
 ```
 
-В локальной копии в `.toc` останется `@project-version@` — версию подставляет только packager при релизе.
+`.luacheckrc` targets Lua 5.1 (the WoW runtime) and whitelists the client API the addon uses;
+add new API globals there when the code starts using them.
 
-## Релиз на CurseForge
+## Releasing to CurseForge
 
-Собирает и публикует сам CurseForge (Automatic Packaging) по webhook из GitHub,
-по правилам из `.pkgmeta`. Релиз — это пуш тега:
+CurseForge Automatic Packaging builds and publishes the addon on a GitHub webhook, following `.pkgmeta`.
+A release is a pushed tag:
 
 ```sh
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Тег с `alpha` — Alpha, с `beta` — Beta, остальные — Release.
-Тег нужно пушить через git: тег, созданный через GitHub API или веб-интерфейс, может не прислать webhook.
+A tag containing `alpha` becomes an Alpha, `beta` a Beta, anything else a Release.
+Push tags with git: a tag created through the GitHub API or web UI may not trigger the webhook.
 
-Одноразовая настройка:
-1. Проект на CurseForge: Settings → Source — GitHub, `https://github.com/Gordory/PartyBag`;
-   Automatic Packaging — пакетовать только теги.
-2. API-токен: https://www.curseforge.com/account/api-tokens (например, «Webhooks»).
-3. GitHub → Settings → Webhooks → Add webhook, Payload URL:
-   `https://www.curseforge.com/api/projects/<projectID>/package?token=<token>`,
-   остальное по умолчанию. `<projectID>` — в блоке «About This Project» на странице проекта.
+## Icon
 
-## Иконка
+`Media/Icon.tga` (64×64) is the addon-list icon, `curseforge/avatar.png` (400×400) is the CurseForge project avatar.
+Source art: `art/icon-source.png`.
 
-`Media/Icon.tga` (64×64) — иконка в списке аддонов, `curseforge/avatar.png` (400×400) — аватар проекта
-на CurseForge. Исходник — `art/icon-source.png`.
+## CurseForge page
 
-## Страница на CurseForge
-
-`curseforge/` — исходники страницы проекта: `summary.txt` (короткое описание), `description.md` (полное), `avatar.png`.
-Packager их не синхронизирует — после правок скопировать на authors.curseforge.com вручную.
+`curseforge/` holds the project page sources: `summary.txt` (short summary), `description.md` (full description), `avatar.png`.
+CurseForge has no API for project descriptions, so copy them to authors.curseforge.com by hand after editing.

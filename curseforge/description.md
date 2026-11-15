@@ -1,15 +1,11 @@
-# Party Bag
-
-**See what your party is carrying — right in the item tooltip.**
-
-Ever finished a dungeon with three half-stacks of the same meat spread across three bags? Party Bag shares bag contents between group members, so when you hover over any item you instantly see who else has it and how many. Hand them over, merge the stacks, free up slots.
+Ever finished a dungeon with three half-stacks of the same meat spread across three friends? Party Bag shares bag contents between group members, so when you hover over any item you instantly see who else has it and how many. Hand them over, merge the stacks, free up slots.
 
 ## Features
 
-- **Party counts in the tooltip** — hover any item (bags, loot window, chat links) to see how many each party member carries, class-colored and sorted by amount.
-- **Automatic sync** — bags are shared when you join a group or `/reload`, and re-sent a moment after your bags change. No buttons to press.
-- **Lightweight** — sends only when something actually changed, as hidden addon messages to your party or raid. No saved variables, no UI clutter.
-- **Clean up after itself** — data for players who leave the group is dropped right away.
+- **Party counts in the tooltip** — hover any item to see how many each party member carries.
+- **Automatic sync** — bags are shared with your group automatically.
+- **Lightweight** — nothing extra, only one feature.
+- **Clean up after itself** — optimized to not degrade after long gaming sessions.
 
 ## Usage
 
@@ -27,16 +23,3 @@ Just install it — and make sure your groupmates install it too. Only players w
 - Localized: English, Russian.
 
 This is an early version — bug reports and ideas are welcome on [GitHub](https://github.com/Gordory/PartyBag/issues).
-
----
-
-# Party Bag (RU)
-
-**Видно, что лежит в сумках у группы, прямо в тултипе предмета.**
-
-Наведи курсор на любой предмет, и увидишь, у кого из группы он тоже есть и сколько. Удобно собрать неполные стаки у одного игрока и освободить слоты.
-
-- Количество у каждого участника группы в тултипе, имена в цвете класса.
-- Синхронизация автоматическая: при входе в группу и после изменения сумок.
-- Аддон должен стоять у всех, чьи сумки нужно видеть. Банк не учитывается.
-- `/pbag` — от кого получены данные, `/pbag sync` — запросить данные заново.
