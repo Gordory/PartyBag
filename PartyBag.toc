@@ -1,5 +1,6 @@
 ## Interface: 16001
-## Title: PartyBag
+## Title: Party Bag
+## IconTexture: Interface\AddOns\PartyBag\Media\Icon
 ## Notes: Shows how many of an item your party members carry in their bags.
 ## Notes-ruRU: Показывает в тултипе, сколько таких предметов в сумках у членов группы.
 ## Version: @project-version@
