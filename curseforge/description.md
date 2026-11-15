@@ -1,15 +1,11 @@
-# Party Bag
-
-**See what your party is carrying — right in the item tooltip.**
-
-Ever finished a dungeon with three half-stacks of the same meat spread across three bags? Party Bag shares bag contents between group members, so when you hover over any item you instantly see who else has it and how many. Hand them over, merge the stacks, free up slots.
+Ever finished a dungeon with three half-stacks of the same meat spread across three friends? Party Bag shares bag contents between group members, so when you hover over any item you instantly see who else has it and how many. Hand them over, merge the stacks, free up slots.
 
 ## Features
 
-- **Party counts in the tooltip** — hover any item (bags, loot window, chat links) to see how many each party member carries, class-colored and sorted by amount.
-- **Automatic sync** — bags are shared when you join a group or `/reload`, and re-sent a moment after your bags change. No buttons to press.
-- **Lightweight** — sends only when something actually changed, as hidden addon messages to your party or raid. No saved variables, no UI clutter.
-- **Clean up after itself** — data for players who leave the group is dropped right away.
+- **Party counts in the tooltip** — hover any item to see how many each party member carries.
+- **Automatic sync** — bags are shared with your group automatically.
+- **Lightweight** — nothing extra, only one feature.
+- **Clean up after itself** — optimized to not degrade after long gaming sessions.
 
 ## Usage
 
