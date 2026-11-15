@@ -1,4 +1,4 @@
-local ADDON_NAME, ns = ...
+local _, ns = ...
 local Protocol = ns.Protocol
 
 local PREFIX = "PartyBag"
@@ -7,20 +7,7 @@ local BROADCAST_DELAY = 2
 -- Spacing chunks keeps us well under the client's addon-message throttle.
 local SEND_INTERVAL = 0.2
 
-local L = {
-    header = "Party bags:",
-    synced = "requested snapshots from the group.",
-    notInGroup = "you are not in a group.",
-    noData = "no data from party members yet.",
-    usage = "/partybag — status, /partybag sync — re-request data",
-}
-if GetLocale() == "ruRU" then
-    L.header = "В сумках группы:"
-    L.synced = "запросил данные у группы."
-    L.notInGroup = "вы не в группе."
-    L.noData = "пока нет данных от членов группы."
-    L.usage = "/partybag — статус, /partybag sync — перезапросить данные"
-end
+local L = LibStub("AceLocale-3.0"):GetLocale("PartyBag")
 
 local playerName
 local peers = {}   -- [name] = { [itemID] = count }
@@ -251,7 +238,7 @@ local function AddTooltipLines(tooltip, itemID)
         return a.name < b.name
     end)
     tooltip:AddLine(" ")
-    tooltip:AddLine(L.header, 0.2, 1, 0.6)
+    tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
     for _, row in ipairs(rows) do
         local color = RAID_CLASS_COLORS[roster[row.name]]
         local r, g, b = 1, 1, 1
@@ -287,11 +274,11 @@ end
 
 local function PrintStatus()
     if not IsInGroup() then
-        Print(L.notInGroup)
+        Print(L.NOT_IN_GROUP)
         return
     end
     if not next(peers) then
-        Print(L.noData)
+        Print(L.NO_DATA)
         return
     end
     for name, counts in pairs(peers) do
@@ -309,16 +296,16 @@ SlashCmdList.PARTYBAG = function(input)
     input = strtrim(input or ""):lower()
     if input == "sync" then
         if not IsInGroup() then
-            Print(L.notInGroup)
+            Print(L.NOT_IN_GROUP)
             return
         end
         RequestSnapshots()
         ScheduleBroadcast(0.5, true)
-        Print(L.synced)
+        Print(L.SYNC_REQUESTED)
     elseif input == "" then
         PrintStatus()
     else
-        Print(L.usage)
+        Print(L.USAGE)
     end
 end
 

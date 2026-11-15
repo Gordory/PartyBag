@@ -5,5 +5,11 @@
 ## Notes-ruRU: Показывает в тултипе, сколько таких предметов в сумках у членов группы.
 ## Version: @project-version@
 
+Libs\LibStub\LibStub.lua
+Libs\AceLocale-3.0\AceLocale-3.0.xml
+
+Locales\enUS.lua
+Locales\ruRU.lua
+
 Protocol.lua
 Core.lua

@@ -1,8 +1,12 @@
 package-as: PartyBag
 
+# Third-party libraries are fetched at package time and kept out of git (Libs/ is gitignored).
+externals:
+  Libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
+  Libs/AceLocale-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0
+
 # Dotfiles and dot-folders are skipped by the packager on its own; these are the dev-only files left over.
 ignore:
-  - deploy.sh
   - README.md
   - art
   - curseforge
