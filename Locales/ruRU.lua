@@ -1,8 +1,5 @@
-local _, ns = ...
--- The TOC already loads this file only on ruRU clients; the guard covers clients
--- that ignore [AllowLoadTextLocale] and would otherwise apply it everywhere.
-if GetLocale() ~= "ruRU" then return end
-local L = ns.L
+local L = LibStub("AceLocale-3.0"):NewLocale("PartyBag", "ruRU")
+if not L then return end
 
 L.TOOLTIP_HEADER = "В сумках группы:"
 L.SYNC_REQUESTED = "запросил данные у группы."

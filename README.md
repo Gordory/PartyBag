@@ -19,6 +19,17 @@ Everyone whose bags you want to see must have the addon installed.
 - `/partybag` or `/pbag` — list players whose data has been received
 - `/partybag sync` — request data again
 
+## Localization
+
+Strings use [AceLocale-3.0](https://www.wowace.com/projects/ace3): `Locales/enUS.lua` is the default, other
+`Locales/<locale>.lua` files override it, and missing keys fall back to English. To add a language, copy
+`enUS.lua`, change the locale code (drop the `true`), translate, and list the file in `PartyBag.toc`.
+
+## Libraries
+
+`Libs/` is not tracked: the packager fetches LibStub and AceLocale-3.0 from the `externals` in `.pkgmeta`.
+For a local checkout, download the same paths into `Libs/`.
+
 ## Lint
 
 ```sh

@@ -2,7 +2,7 @@
 std = "lua51"
 max_line_length = false
 -- ._* are macOS AppleDouble files created on non-APFS volumes.
-exclude_files = { ".worktrees/**", "**/._*" }
+exclude_files = { ".worktrees/**", "**/._*", "Libs/**" }
 
 globals = {
     "SLASH_PARTYBAG1",
@@ -29,6 +29,7 @@ read_globals = {
     "GetUnitName",
     "IsInGroup",
     "IsInRaid",
+    "LibStub",
     "ItemRefTooltip",
     "LE_PARTY_CATEGORY_HOME",
     "LE_PARTY_CATEGORY_INSTANCE",
