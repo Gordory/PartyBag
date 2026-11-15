@@ -31,26 +31,31 @@ DRY_RUN=1 ./deploy.sh    # только показать изменения
 
 ## Релиз на CurseForge
 
-Сборку и загрузку делает [BigWigs Packager](https://github.com/BigWigsMods/packager)
-(`.github/workflows/release.yml`) при пуше тега `v*`:
+Собирает и публикует сам CurseForge (Automatic Packaging) по webhook из GitHub,
+по правилам из `.pkgmeta`. Релиз — это пуш тега:
 
 ```sh
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Тег без суффикса — Release, `v0.1.0-beta1` — Beta, `v0.1.0-alpha1` — Alpha.
-Что попадает в zip, задаётся в `.pkgmeta`.
+Тег с `alpha` — Alpha, с `beta` — Beta, остальные — Release.
+Тег нужно пушить через git: тег, созданный через GitHub API или веб-интерфейс, может не прислать webhook.
 
 Одноразовая настройка:
-1. Создать проект на [authors.curseforge.com](https://authors.curseforge.com) и дождаться модерации.
-2. Добавить его ID в `PartyBag.toc`: `## X-Curse-Project-ID: <id>`.
-3. Создать API-токен (authors.curseforge.com → API Tokens) и сохранить в секрет репозитория `CF_API_KEY`:
-   `gh secret set CF_API_KEY`.
-
-Без ID проекта или токена packager только создаёт GitHub Release с zip.
+1. Проект на CurseForge: Settings → Source — GitHub, `https://github.com/Gordory/PartyBag`;
+   Automatic Packaging — пакетовать только теги.
+2. API-токен: https://www.curseforge.com/account/api-tokens (например, «Webhooks»).
+3. GitHub → Settings → Webhooks → Add webhook, Payload URL:
+   `https://www.curseforge.com/api/projects/<projectID>/package?token=<token>`,
+   остальное по умолчанию. `<projectID>` — в блоке «About This Project» на странице проекта.
 
 ## Иконка
 
-`Media/Icon.tga` (64×64) — иконка в списке аддонов, `art/curseforge-avatar.png` (400×400) — аватар проекта
+`Media/Icon.tga` (64×64) — иконка в списке аддонов, `curseforge/avatar.png` (400×400) — аватар проекта
 на CurseForge. Исходник — `art/icon-source.png`.
+
+## Страница на CurseForge
+
+`curseforge/` — исходники страницы проекта: `summary.txt` (короткое описание), `description.md` (полное), `avatar.png`.
+Packager их не синхронизирует — после правок скопировать на authors.curseforge.com вручную.
