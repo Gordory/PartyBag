@@ -29,16 +29,6 @@ luacheck .
 `.luacheckrc` targets Lua 5.1 (the WoW runtime) and whitelists the client API the addon uses;
 add new API globals there when the code starts using them.
 
-## Local deploy
-
-```sh
-./deploy.sh                # → /Volumes/Data/Games/World of Warcraft/_forever_/Interface/AddOns/PartyBag
-DRY_RUN=1 ./deploy.sh      # only show what would change
-./deploy.sh _classic_era_  # a different client flavor
-```
-
-The local copy keeps `@project-version@` in the `.toc`; the version is substituted only when CurseForge packages a release.
-
 ## Releasing to CurseForge
 
 CurseForge Automatic Packaging builds and publishes the addon on a GitHub webhook, following `.pkgmeta`.
@@ -51,14 +41,6 @@ git push origin v0.1.0
 
 A tag containing `alpha` becomes an Alpha, `beta` a Beta, anything else a Release.
 Push tags with git: a tag created through the GitHub API or web UI may not trigger the webhook.
-
-One-time setup:
-1. CurseForge project settings: Source — GitHub, `https://github.com/Gordory/PartyBag`;
-   Automatic Packaging — package tags only.
-2. API token: https://www.curseforge.com/account/api-tokens (e.g. "Webhooks").
-3. GitHub → Settings → Webhooks → Add webhook, Payload URL:
-   `https://www.curseforge.com/api/projects/<projectID>/package?token=<token>`,
-   everything else at defaults. `<projectID>` is in the "About This Project" block on the project page.
 
 ## Icon
 
