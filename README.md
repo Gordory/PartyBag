@@ -19,6 +19,16 @@ Everyone whose bags you want to see must have the addon installed.
 - `/partybag` or `/pbag` — list players whose data has been received
 - `/partybag sync` — request data again
 
+## Lint
+
+```sh
+brew install luacheck
+luacheck .
+```
+
+`.luacheckrc` targets Lua 5.1 (the WoW runtime) and whitelists the client API the addon uses;
+add new API globals there when the code starts using them.
+
 ## Local deploy
 
 ```sh
