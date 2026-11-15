@@ -7,7 +7,7 @@ local BROADCAST_DELAY = 2
 -- Spacing chunks keeps us well under the client's addon-message throttle.
 local SEND_INTERVAL = 0.2
 
-local L = ns.L
+local L = LibStub("AceLocale-3.0"):GetLocale("PartyBag")
 
 local playerName
 local peers = {}   -- [name] = { [itemID] = count }
