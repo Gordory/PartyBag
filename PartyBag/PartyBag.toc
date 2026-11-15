@@ -1,0 +1,8 @@
+## Interface: 16001, 11509, 20506
+## Title: PartyBag
+## Notes: Shows how many of an item your party members carry in their bags.
+## Notes-ruRU: Показывает в тултипе, сколько таких предметов в сумках у членов группы.
+## Version: 0.1.0
+
+Protocol.lua
+Core.lua
