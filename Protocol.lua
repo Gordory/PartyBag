@@ -71,9 +71,9 @@ function Protocol.Parse(message)
 end
 
 function Protocol.DecodePayload(payload, into)
-    for id, count in payload:gmatch("(%d+):(%d+)") do
-        id = tonumber(id)
-        into[id] = (into[id] or 0) + tonumber(count)
+    for rawID, count in payload:gmatch("(%d+):(%d+)") do
+        local itemID = tonumber(rawID)
+        into[itemID] = (into[itemID] or 0) + tonumber(count)
     end
     return into
 end
