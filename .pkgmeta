@@ -2,7 +2,6 @@ package-as: PartyBag
 
 # Dotfiles and dot-folders are skipped by the packager on its own; these are the dev-only files left over.
 ignore:
-  - deploy.sh
   - README.md
   - art
   - curseforge
