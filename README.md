@@ -1,4 +1,4 @@
-# PartyBag
+# Party Bag
 
 Аддон для WoW Forever (`Interface: 16001`). Каждый участник группы рассылает скрытыми addon-сообщениями
 содержимое своих сумок (`itemID → количество`). При наведении на предмет в тултипе видно, у кого из группы
@@ -49,3 +49,8 @@ git push origin v0.1.0
    `gh secret set CF_API_KEY`.
 
 Без ID проекта или токена packager только создаёт GitHub Release с zip.
+
+## Иконка
+
+`Media/Icon.tga` (64×64) — иконка в списке аддонов, `art/curseforge-avatar.png` (400×400) — аватар проекта
+на CurseForge. Исходник — `art/icon-source.png`.

@@ -4,3 +4,4 @@ package-as: PartyBag
 ignore:
   - deploy.sh
   - README.md
+  - art
