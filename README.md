@@ -26,3 +26,26 @@
 DRY_RUN=1 ./deploy.sh    # только показать изменения
 ./deploy.sh _classic_era_  # в другую версию клиента
 ```
+
+В локальной копии в `.toc` останется `@project-version@` — версию подставляет только packager при релизе.
+
+## Релиз на CurseForge
+
+Сборку и загрузку делает [BigWigs Packager](https://github.com/BigWigsMods/packager)
+(`.github/workflows/release.yml`) при пуше тега `v*`:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Тег без суффикса — Release, `v0.1.0-beta1` — Beta, `v0.1.0-alpha1` — Alpha.
+Что попадает в zip, задаётся в `.pkgmeta`.
+
+Одноразовая настройка:
+1. Создать проект на [authors.curseforge.com](https://authors.curseforge.com) и дождаться модерации.
+2. Добавить его ID в `PartyBag.toc`: `## X-Curse-Project-ID: <id>`.
+3. Создать API-токен (authors.curseforge.com → API Tokens) и сохранить в секрет репозитория `CF_API_KEY`:
+   `gh secret set CF_API_KEY`.
+
+Без ID проекта или токена packager только создаёт GitHub Release с zip.
