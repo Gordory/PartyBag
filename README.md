@@ -52,5 +52,10 @@ git push origin v0.1.0
 
 ## Иконка
 
-`Media/Icon.tga` (64×64) — иконка в списке аддонов, `art/curseforge-avatar.png` (400×400) — аватар проекта
+`Media/Icon.tga` (64×64) — иконка в списке аддонов, `curseforge/avatar.png` (400×400) — аватар проекта
 на CurseForge. Исходник — `art/icon-source.png`.
+
+## Страница на CurseForge
+
+`curseforge/` — исходники страницы проекта: `summary.txt` (короткое описание), `description.md` (полное), `avatar.png`.
+Packager их не синхронизирует — после правок скопировать на authors.curseforge.com вручную.

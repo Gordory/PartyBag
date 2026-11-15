@@ -21,7 +21,7 @@ if [[ ! -d "$ADDONS_DIR" ]]; then
 fi
 
 # Mirrors .pkgmeta so the local copy matches what CurseForge users get; '.*' also covers .git, .worktrees and macOS ._ files.
-RSYNC_ARGS=(-a --delete --itemize-changes --exclude '.*' --exclude 'deploy.sh' --exclude 'README.md' --exclude 'art')
+RSYNC_ARGS=(-a --delete --itemize-changes --exclude '.*' --exclude 'deploy.sh' --exclude 'README.md' --exclude 'art' --exclude 'curseforge')
 if [[ "${DRY_RUN:-0}" == "1" ]]; then
     RSYNC_ARGS+=(--dry-run)
 else
