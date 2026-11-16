@@ -12,5 +12,6 @@ Libs\AceLocale-3.0\AceLocale-3.0.xml
 Locales\enUS.lua
 Locales\ruRU.lua
 
+Names.lua
 Protocol.lua
 Core.lua
