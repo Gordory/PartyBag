@@ -1,6 +1,7 @@
 local _, ns = ...
 local Protocol = ns.Protocol
 local Names = ns.Names
+local Rows = ns.Rows
 
 local PREFIX = "PartyBag"
 -- Looting fires BAG_UPDATE_DELAYED in bursts; waiting lets one snapshot cover the whole burst.
@@ -10,12 +11,16 @@ local SEND_INTERVAL = 0.2
 
 local L = LibStub("AceLocale-3.0"):GetLocale("PartyBag")
 
+ns.DEFAULTS = { showHeader = false, showSelf = false, mode = "SHORT" }
+
 local playerName
 local peers = {}   -- [name] = { [itemID] = count }
 local pending = {} -- [name] = { seq, total, received, counts }
 local roster = {}  -- [name] = classFile
 -- The client rebuilds item tooltips several times a second, so rows are built once per item and reused.
 local rowCache = {} -- [itemID] = { { name, count, r, g, b } }
+-- Shared by the broadcast and the own tooltip row; dropped on every bag change so one scan serves both.
+local selfCounts
 local wasInGroup = false
 local lastSent
 local seq = 0
@@ -78,6 +83,17 @@ local function ScanBags()
     return counts
 end
 
+local function GetSelfCounts()
+    if not selfCounts then
+        selfCounts = ScanBags()
+    end
+    return selfCounts
+end
+
+function ns.OnSettingsChanged()
+    wipe(rowCache)
+end
+
 local function PumpQueue()
     local message = table.remove(queue, 1)
     if not message then
@@ -114,7 +130,7 @@ local function Broadcast()
     if not GroupChannel() then
         return
     end
-    local tokens = Protocol.Serialize(ScanBags())
+    local tokens = Protocol.Serialize(GetSelfCounts())
     local signature = table.concat(tokens, ",")
     if not force and signature == lastSent then
         return
@@ -235,31 +251,32 @@ local function OnAddonMessage(prefix, text, _, sender)
     end
 end
 
-local function BuildRows(itemID)
-    local rows = {}
-    for name, counts in pairs(peers) do
-        local count = counts[itemID]
-        if count then
-            Debug("tooltip item %d: [%s] = %d", itemID, name, count)
-            local color = RAID_CLASS_COLORS[roster[name]]
-            local r, g, b = 1, 1, 1
-            if color then
-                r, g, b = color.r, color.g, color.b
-            end
-            rows[#rows + 1] = { name = name, count = count, r = r, g = g, b = b }
-        end
+local function ClassColor(classFile)
+    local color = RAID_CLASS_COLORS[classFile]
+    if color then
+        return color.r, color.g, color.b
     end
-    table.sort(rows, function(a, b)
-        if a.count ~= b.count then
-            return a.count > b.count
-        end
-        return a.name < b.name
-    end)
+    return 1, 1, 1
+end
+
+local function BuildRows(itemID)
+    local showSelf = PartyBagDB.showSelf
+    local rows = Rows.Build(peers, itemID, {
+        full = PartyBagDB.mode == "FULL",
+        selfName = showSelf and playerName or nil,
+        selfCounts = showSelf and GetSelfCounts() or nil,
+    })
+    local _, selfClass = UnitClass("player")
+    for _, row in ipairs(rows) do
+        Debug("tooltip item %d: [%s] = %d", itemID, row.name, row.count)
+        row.r, row.g, row.b = ClassColor(row.name == playerName and selfClass or roster[row.name])
+    end
     return rows
 end
 
 local function AddTooltipLines(tooltip, itemID)
-    if not itemID or not next(peers) then
+    -- Solo there is nobody to compare with, so even the own row would only repeat the bag count.
+    if not itemID or not IsInGroup() or not (next(peers) or PartyBagDB.showSelf) then
         return
     end
     local rows = rowCache[itemID]
@@ -271,7 +288,9 @@ local function AddTooltipLines(tooltip, itemID)
         return
     end
     tooltip:AddLine(" ")
-    tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
+    if PartyBagDB.showHeader then
+        tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
+    end
     for _, row in ipairs(rows) do
         tooltip:AddDoubleLine(row.name, row.count, row.r, row.g, row.b, 1, 1, 1)
     end
@@ -353,6 +372,10 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         OnAddonMessage(...)
     elseif event == "BAG_UPDATE_DELAYED" then
+        selfCounts = nil
+        if PartyBagDB.showSelf then
+            wipe(rowCache)
+        end
         if IsInGroup() then
             ScheduleBroadcast(BROADCAST_DELAY, false)
         end
@@ -368,6 +391,11 @@ frame:SetScript("OnEvent", function(_, event, ...)
         OnGroupChanged()
     elseif event == "PLAYER_LOGIN" then
         PartyBagDB = PartyBagDB or {}
+        for key, value in pairs(ns.DEFAULTS) do
+            if PartyBagDB[key] == nil then
+                PartyBagDB[key] = value
+            end
+        end
         playerName = Names.FromParts(UnitFullName("player"))
         C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
         HookTooltips()
