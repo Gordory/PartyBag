@@ -14,6 +14,15 @@ Everyone whose bags you want to see must have the addon installed.
 - On joining a group or `/reload`, broadcasts a request `R;ver`; everyone replies with their snapshot.
 - Data for a player is dropped when they leave the group; all data is dropped when you leave.
 
+## Settings
+
+Options → AddOns → Party Bag (stored in `PartyBagDB`):
+
+- **Show header** (off by default) — the "Party bags:" title above the tooltip list.
+- **Show my items** (off by default) — adds your own count to the list.
+- **Mode** — *Short* (default) lists only players who carry the item; *Full* lists everyone who shared their bags,
+  with 0 for those without it. Players without the addon are never listed.
+
 ## Commands
 
 - `/partybag` or `/pbag` — list players whose data has been received
