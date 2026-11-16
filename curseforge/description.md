@@ -26,7 +26,7 @@ Find them in **Options → AddOns → Party Bag**:
 
 ## Notes
 
-- Counts cover backpack and equipped bags only — bank contents are not shared.
+- Counts cover the backpack, equipped bags and the reagent bag — bank contents are not shared.
 - Built for **WoW Forever**. Works in party, raid and instance groups.
 - Localized: English, Russian.
 
