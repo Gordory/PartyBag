@@ -109,10 +109,11 @@ local function BuildPanel()
     return panel
 end
 
--- The vertical layout needs the 11.x Settings API (CreateDropdown); older clients get a hand-built panel.
+-- The vertical layout needs the 11.x Settings API; RegisterAddOnSetting changed its arguments within 11.0,
+-- so a client in between can pass the feature check and still fail, and then gets the hand-built panel instead.
 function ns.RegisterOptions()
-    if Settings and Settings.RegisterVerticalLayoutCategory and Settings.CreateDropdown and Settings.CreateCheckbox then
-        RegisterSettingsPage()
+    if Settings and Settings.RegisterVerticalLayoutCategory and Settings.CreateDropdown and Settings.CreateCheckbox
+        and pcall(RegisterSettingsPage) then
         return
     end
     local panel = BuildPanel()
