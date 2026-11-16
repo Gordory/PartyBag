@@ -13,5 +13,6 @@ Locales\enUS.lua
 Locales\ruRU.lua
 
 Names.lua
+Rows.lua
 Protocol.lua
 Core.lua
