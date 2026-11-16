@@ -275,7 +275,7 @@ end
 
 -- Debug-only probe: reads the first row back a moment later to see whether the client recolored it after us.
 local tooltipCalls, colorCheckPending = 0, false
-local function ProbeRowColor(tooltip, lineIndex, row)
+local function ProbeRowColor(tooltip, firstLine, rows)
     tooltipCalls = tooltipCalls + 1
     if colorCheckPending or not (PartyBagDB and PartyBagDB.debug) then
         return
@@ -283,14 +283,17 @@ local function ProbeRowColor(tooltip, lineIndex, row)
     colorCheckPending = true
     C_Timer.After(0.3, function()
         colorCheckPending = false
-        local line = _G[tooltip:GetName() .. "TextLeft" .. lineIndex]
-        local text = line and line:GetText()
-        local r, g, b = 0, 0, 0
-        if line then
-            r, g, b = line:GetTextColor()
+        for i, row in ipairs(rows) do
+            local lineIndex = firstLine + i - 1
+            local line = _G[tooltip:GetName() .. "TextLeft" .. lineIndex]
+            local text = line and line:GetText()
+            local r, g, b = 0, 0, 0
+            if line then
+                r, g, b = line:GetTextColor()
+            end
+            Debug("probe line %d [%s] = %.2f %.2f %.2f, expected [%s] = %.2f %.2f %.2f, calls %d, shown %s",
+                lineIndex, tostring(text), r, g, b, row.name, row.r, row.g, row.b, tooltipCalls, tostring(tooltip:IsShown()))
         end
-        Debug("probe line %d [%s] = %.2f %.2f %.2f, expected [%s] = %.2f %.2f %.2f, calls %d, shown %s",
-            lineIndex, tostring(text), r, g, b, row.name, row.r, row.g, row.b, tooltipCalls, tostring(tooltip:IsShown()))
         tooltipCalls = 0
     end)
 end
@@ -315,7 +318,7 @@ local function AddTooltipLines(tooltip, itemID)
     for _, row in ipairs(rows) do
         tooltip:AddDoubleLine(row.name, row.count, row.r, row.g, row.b, 1, 1, 1)
     end
-    ProbeRowColor(tooltip, tooltip:NumLines() - #rows + 1, rows[1])
+    ProbeRowColor(tooltip, tooltip:NumLines() - #rows + 1, rows)
     tooltip:Show()
 end
 
