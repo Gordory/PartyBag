@@ -16,6 +16,14 @@ Just install it — and make sure your groupmates install it too. Only players w
 | `/pbag` | Shows whose data you have received |
 | `/pbag sync` | Asks the group to resend their bags |
 
+## Settings
+
+Find them in **Options → AddOns → Party Bag**:
+
+- **Show header** — the "Party bags:" title above the list (off by default).
+- **Show my items** — include your own count in the list (off by default).
+- **Mode** — *Short* lists only players who carry the item; *Full* lists everyone who shared their bags, with 0 for the rest.
+
 ## Notes
 
 - Counts cover backpack and equipped bags only — bank contents are not shared.
