@@ -274,31 +274,6 @@ local function BuildRows(itemID)
     return rows
 end
 
--- Debug-only probe: reads the first row back a moment later to see whether the client recolored it after us.
-local tooltipCalls, colorCheckPending = 0, false
-local function ProbeRowColor(tooltip, firstLine, rows)
-    tooltipCalls = tooltipCalls + 1
-    if colorCheckPending or not (PartyBagDB and PartyBagDB.debug) then
-        return
-    end
-    colorCheckPending = true
-    C_Timer.After(0.3, function()
-        colorCheckPending = false
-        for i, row in ipairs(rows) do
-            local lineIndex = firstLine + i - 1
-            local line = _G[tooltip:GetName() .. "TextLeft" .. lineIndex]
-            local text = line and line:GetText()
-            local r, g, b = 0, 0, 0
-            if line then
-                r, g, b = line:GetTextColor()
-            end
-            Debug("probe line %d [%s] = %.2f %.2f %.2f, expected [%s] = %.2f %.2f %.2f, calls %d, shown %s",
-                lineIndex, tostring(text), r, g, b, row.name, row.r, row.g, row.b, tooltipCalls, tostring(tooltip:IsShown()))
-        end
-        tooltipCalls = 0
-    end)
-end
-
 local function AddTooltipLines(tooltip, itemID)
     -- Solo there is nobody to compare with, so even the own row would only repeat the bag count.
     if not itemID or not IsInGroup() or not (next(peers) or PartyBagDB.showSelf) then
@@ -319,20 +294,7 @@ local function AddTooltipLines(tooltip, itemID)
     for _, row in ipairs(rows) do
         tooltip:AddDoubleLine(row.label, row.count, 1, 1, 1, 1, 1, 1)
     end
-    local firstLine = tooltip:NumLines() - #rows + 1
-    local probeNow = PartyBagDB.debug and not colorCheckPending
-    local function ReadNow(stage)
-        local line = _G[tooltip:GetName() .. "TextLeft" .. (firstLine + #rows - 1)]
-        Debug("probe %s line %d = %.2f %.2f %.2f", stage, firstLine + #rows - 1, line:GetTextColor())
-    end
-    if probeNow then
-        ReadNow("after add")
-    end
-    ProbeRowColor(tooltip, firstLine, rows)
     tooltip:Show()
-    if probeNow then
-        ReadNow("after show")
-    end
 end
 
 local function HookTooltips()
