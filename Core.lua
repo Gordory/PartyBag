@@ -373,7 +373,8 @@ frame:SetScript("OnEvent", function(_, event, ...)
         OnAddonMessage(...)
     elseif event == "BAG_UPDATE_DELAYED" then
         selfCounts = nil
-        if PartyBagDB.showSelf then
+        -- Bags can report in before PLAYER_LOGIN, when saved settings are not set up yet.
+        if PartyBagDB and PartyBagDB.showSelf then
             wipe(rowCache)
         end
         if IsInGroup() then
@@ -399,5 +400,6 @@ frame:SetScript("OnEvent", function(_, event, ...)
         playerName = Names.FromParts(UnitFullName("player"))
         C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
         HookTooltips()
+        ns.RegisterOptions()
     end
 end)
