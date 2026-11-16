@@ -2,6 +2,7 @@ local _, ns = ...
 local Protocol = ns.Protocol
 local Names = ns.Names
 local Rows = ns.Rows
+local Bags = ns.Bags
 
 local PREFIX = "PartyBag"
 -- Looting fires BAG_UPDATE_DELAYED in bursts; waiting lets one snapshot cover the whole burst.
@@ -76,16 +77,7 @@ local function GetSlotItem(bag, slot)
 end
 
 local function ScanBags()
-    local counts = {}
-    for bag = 0, NUM_BAG_SLOTS do
-        for slot = 1, GetNumSlots(bag) or 0 do
-            local itemID, count = GetSlotItem(bag, slot)
-            if itemID then
-                counts[itemID] = (counts[itemID] or 0) + (count or 1)
-            end
-        end
-    end
-    return counts
+    return Bags.Scan(Bags.LastIndex(NUM_BAG_SLOTS, NUM_TOTAL_EQUIPPED_BAG_SLOTS), GetNumSlots, GetSlotItem)
 end
 
 local function GetSelfCounts()

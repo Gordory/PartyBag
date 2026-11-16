@@ -38,6 +38,7 @@ read_globals = {
     "LE_PARTY_CATEGORY_HOME",
     "LE_PARTY_CATEGORY_INSTANCE",
     "NUM_BAG_SLOTS",
+    "NUM_TOTAL_EQUIPPED_BAG_SLOTS",
     "RAID_CLASS_COLORS",
     "Settings",
     "TooltipDataProcessor",

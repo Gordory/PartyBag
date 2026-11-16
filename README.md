@@ -8,7 +8,7 @@ Everyone whose bags you want to see must have the addon installed.
 
 ## How it works
 
-- Scans bags 0–4 (bank is not included).
+- Scans the backpack, equipped bags and the reagent bag (bank is not included).
 - After bags change (debounced by 2 s), sends a full snapshot if it differs from the last one sent.
   Snapshots are split into chunks of ≤ 255 bytes (`S;ver;seq;idx;total;id:n,...`).
 - On joining a group or `/reload`, broadcasts a request `R;ver`; everyone replies with their snapshot.
@@ -50,11 +50,12 @@ luacheck .
 `.luacheckrc` targets Lua 5.1 (the WoW runtime) and whitelists the client API the addon uses;
 add new API globals there when the code starts using them.
 
-Pure modules (`Names.lua`, `Rows.lua`, no WoW API calls) have plain-`assert` tests, run from the repo root:
+Pure modules (`Names.lua`, `Rows.lua`, `Bags.lua`, no WoW API calls) have plain-`assert` tests, run from the repo root:
 
 ```sh
 lua tests/names_test.lua
 lua tests/rows_test.lua
+lua tests/bags_test.lua
 ```
 
 ## Releasing to CurseForge
