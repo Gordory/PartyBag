@@ -31,4 +31,8 @@ Check(Rows.Build(peers, 3, { full = true }), { { "A", 0 }, { "B", 0 } })
 -- Ties sort by name.
 Check(Rows.Build({ B = { [1] = 3 }, A = { [1] = 3 } }, 1, { full = false }), { { "A", 3 }, { "B", 3 } })
 
+-- Inline color codes survive the client's tooltip refresh, which drops AddDoubleLine colors.
+assert(Rows.Colorize("Гордори Фалстад", 0, 0.44, 0.87) == "|cff0070deГордори Фалстад|r")
+assert(Rows.Colorize("Suu Zorya", 1, 1, 1) == "|cffffffffSuu Zorya|r")
+
 print("rows_test: ok")
