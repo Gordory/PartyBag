@@ -1,5 +1,10 @@
 package-as: PartyBag
 
+# Release notes come from this file instead of the git log, so commit metadata never reaches CurseForge.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
 # Third-party libraries are fetched at package time and kept out of git (Libs/ is gitignored).
 externals:
   Libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
