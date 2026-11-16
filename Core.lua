@@ -273,6 +273,28 @@ local function BuildRows(itemID)
     return rows
 end
 
+-- Debug-only probe: reads the first row back a moment later to see whether the client recolored it after us.
+local tooltipCalls, colorCheckPending = 0, false
+local function ProbeRowColor(tooltip, lineIndex, row)
+    tooltipCalls = tooltipCalls + 1
+    if colorCheckPending or not (PartyBagDB and PartyBagDB.debug) then
+        return
+    end
+    colorCheckPending = true
+    C_Timer.After(0.3, function()
+        colorCheckPending = false
+        local line = _G[tooltip:GetName() .. "TextLeft" .. lineIndex]
+        local text = line and line:GetText()
+        local r, g, b = 0, 0, 0
+        if line then
+            r, g, b = line:GetTextColor()
+        end
+        Debug("probe line %d [%s] = %.2f %.2f %.2f, expected [%s] = %.2f %.2f %.2f, calls %d, shown %s",
+            lineIndex, tostring(text), r, g, b, row.name, row.r, row.g, row.b, tooltipCalls, tostring(tooltip:IsShown()))
+        tooltipCalls = 0
+    end)
+end
+
 local function AddTooltipLines(tooltip, itemID)
     -- Solo there is nobody to compare with, so even the own row would only repeat the bag count.
     if not itemID or not IsInGroup() or not (next(peers) or PartyBagDB.showSelf) then
@@ -293,6 +315,7 @@ local function AddTooltipLines(tooltip, itemID)
     for _, row in ipairs(rows) do
         tooltip:AddDoubleLine(row.name, row.count, row.r, row.g, row.b, 1, 1, 1)
     end
+    ProbeRowColor(tooltip, tooltip:NumLines() - #rows + 1, rows[1])
     tooltip:Show()
 end
 
@@ -305,8 +328,10 @@ local function HookTooltips()
                 AddTooltipLines(tooltip, data and data.id)
             end
         end)
+        Debug("hook: TooltipDataProcessor")
         return
     end
+    Debug("hook: OnTooltipSetItem")
     local getInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
     for tooltip in pairs(targets) do
         tooltip:HookScript("OnTooltipSetItem", function(self)
