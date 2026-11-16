@@ -23,6 +23,8 @@ Options → AddOns → Party Bag (stored in `PartyBagDB`):
 - **Mode** — *Short* (default) lists only players who carry the item; *Full* lists everyone who shared their bags,
   with 0 for those without it. Players without the addon are never listed.
 
+The list keeps one order on every item: your own row first, then everyone else by name.
+
 ## Commands
 
 - `/partybag` or `/pbag` — list players whose data has been received

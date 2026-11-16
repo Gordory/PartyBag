@@ -22,14 +22,18 @@ Check(Rows.Build(peers, 1, { full = true }), { { "A", 2 }, { "B", 0 } })
 Check(Rows.Build(peers, 1, { full = false, selfName = "Me", selfCounts = { [1] = 7 } }), { { "Me", 7 }, { "A", 2 } })
 -- Own row is skipped unless both name and counts are given.
 Check(Rows.Build(peers, 1, { full = false, selfCounts = { [1] = 7 } }), { { "A", 2 } })
--- FULL shows own 0 too.
-Check(Rows.Build(peers, 1, { full = true, selfName = "Me", selfCounts = {} }), { { "A", 2 }, { "B", 0 }, { "Me", 0 } })
+-- FULL shows own 0 too, still on top.
+Check(Rows.Build(peers, 1, { full = true, selfName = "Me", selfCounts = {} }), { { "Me", 0 }, { "A", 2 }, { "B", 0 } })
 -- SHORT with own items only and self hidden: nothing to show.
 Check(Rows.Build({}, 1, { full = false }), {})
 -- FULL where nobody has the item still lists everyone.
 Check(Rows.Build(peers, 3, { full = true }), { { "A", 0 }, { "B", 0 } })
--- Ties sort by name.
-Check(Rows.Build({ B = { [1] = 3 }, A = { [1] = 3 } }, 1, { full = false }), { { "A", 3 }, { "B", 3 } })
+-- Others keep one order for every item: by name, regardless of counts.
+Check(Rows.Build({ B = { [1] = 9 }, A = { [1] = 1 } }, 1, { full = false }), { { "A", 1 }, { "B", 9 } })
+-- Letter case does not split the order.
+Check(Rows.Build({ b = { [1] = 1 }, A = { [1] = 1 }, C = { [1] = 1 } }, 1, { full = false }), { { "A", 1 }, { "b", 1 }, { "C", 1 } })
+-- Own row stays first even with the smallest count and a later name.
+Check(Rows.Build({ A = { [1] = 9 } }, 1, { full = false, selfName = "Z", selfCounts = { [1] = 1 } }), { { "Z", 1 }, { "A", 9 } })
 
 -- Inline color codes survive the client's tooltip refresh, which drops AddDoubleLine colors.
 assert(Rows.Colorize("Гордори Фалстад", 0, 0.44, 0.87) == "|cff0070deГордори Фалстад|r")
