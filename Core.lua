@@ -40,6 +40,11 @@ local function Debug(fmt, ...)
     end
 end
 
+local function InvalidateRows(reason)
+    Debug("rows reset: %s", reason)
+    wipe(rowCache)
+end
+
 local function NormalizeName(name)
     return name and Ambiguate(name, "none")
 end
@@ -91,7 +96,7 @@ local function GetSelfCounts()
 end
 
 function ns.OnSettingsChanged()
-    wipe(rowCache)
+    InvalidateRows("settings")
 end
 
 local function PumpQueue()
@@ -155,7 +160,7 @@ end
 
 local function RefreshRoster()
     wipe(roster)
-    wipe(rowCache)
+    InvalidateRows("roster")
     local unknown = false
     local prefix, count = "party", GetNumSubgroupMembers()
     if IsInRaid() then
@@ -165,6 +170,7 @@ local function RefreshRoster()
         local unit = prefix .. i
         local name = Names.FromParts(UnitFullName(unit))
         if not name or name == UNKNOWNOBJECT then
+            Debug("roster %s: not resolved yet", unit)
             unknown = true
         else
             local _, classFile = UnitClass(unit)
@@ -194,7 +200,7 @@ local function OnGroupChanged()
         wipe(peers)
         wipe(pending)
         wipe(roster)
-        wipe(rowCache)
+        InvalidateRows("left group")
         wipe(queue)
         lastSent = nil
         wasInGroup = false
@@ -224,7 +230,7 @@ local function OnSnapshotChunk(sender, message)
         Debug("snapshot complete from [%s]", sender)
         peers[sender] = state.counts
         pending[sender] = nil
-        wipe(rowCache)
+        InvalidateRows("snapshot")
     end
 end
 
@@ -268,8 +274,9 @@ local function BuildRows(itemID)
     })
     local _, selfClass = UnitClass("player")
     for _, row in ipairs(rows) do
-        Debug("tooltip item %d: [%s] = %d", itemID, row.name, row.count)
-        row.r, row.g, row.b = ClassColor(row.name == playerName and selfClass or roster[row.name])
+        local classFile = row.name == playerName and selfClass or roster[row.name]
+        Debug("tooltip item %d: [%s] = %d, class %s", itemID, row.name, row.count, tostring(classFile))
+        row.r, row.g, row.b = ClassColor(classFile)
     end
     return rows
 end
@@ -375,7 +382,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
         selfCounts = nil
         -- Bags can report in before PLAYER_LOGIN, when saved settings are not set up yet.
         if PartyBagDB and PartyBagDB.showSelf then
-            wipe(rowCache)
+            InvalidateRows("bags")
         end
         if IsInGroup() then
             ScheduleBroadcast(BROADCAST_DELAY, false)
