@@ -18,6 +18,7 @@ Everyone whose bags you want to see must have the addon installed.
 
 - `/partybag` or `/pbag` — list players whose data has been received
 - `/partybag sync` — request data again
+- `/partybag debug` — toggle debug output of incoming messages and tooltip rows (saved between sessions)
 
 ## Localization
 
