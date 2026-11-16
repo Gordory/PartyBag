@@ -25,6 +25,13 @@ local function Print(text)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99PartyBag|r: " .. text)
 end
 
+-- Brackets expose stray whitespace or realm suffixes that would otherwise look identical in chat.
+local function Debug(fmt, ...)
+    if PartyBagDB and PartyBagDB.debug then
+        Print("|cff999999debug|r " .. fmt:format(...))
+    end
+end
+
 local function NormalizeName(name)
     return name and Ambiguate(name, "none")
 end
@@ -192,6 +199,7 @@ local function OnSnapshotChunk(sender, message)
     Protocol.DecodePayload(message.payload, state.counts)
     state.received = message.idx
     if state.received == state.total then
+        Debug("snapshot complete from [%s]", sender)
         peers[sender] = state.counts
         pending[sender] = nil
     end
@@ -203,12 +211,15 @@ local function OnAddonMessage(prefix, text, _, sender)
     end
     local name = NormalizeName(sender)
     if not name or name == playerName then
+        Debug("drop self [%s] -> [%s], player [%s]", tostring(sender), tostring(name), tostring(playerName))
         return
     end
     local message = Protocol.Parse(text)
     if not message then
+        Debug("drop unparsed from [%s]: %s", name, text)
         return
     end
+    Debug("recv %s from [%s] -> [%s], player [%s]", message.kind, sender, name, tostring(playerName))
     if message.kind == "R" then
         -- Jitter spreads replies so a whole raid does not answer in the same frame.
         ScheduleBroadcast(1 + math.random() * 1.5, true)
@@ -225,6 +236,7 @@ local function AddTooltipLines(tooltip, itemID)
     for name, counts in pairs(peers) do
         local count = counts[itemID]
         if count then
+            Debug("tooltip item %d: [%s] = %d", itemID, name, count)
             rows[#rows + 1] = { name = name, count = count }
         end
     end
@@ -286,7 +298,7 @@ local function PrintStatus()
         for _ in pairs(counts) do
             kinds = kinds + 1
         end
-        Print(name .. ": " .. kinds)
+        Print("[" .. name .. "]: " .. kinds)
     end
 end
 
@@ -302,6 +314,10 @@ SlashCmdList.PARTYBAG = function(input)
         RequestSnapshots()
         ScheduleBroadcast(0.5, true)
         Print(L.SYNC_REQUESTED)
+    elseif input == "debug" then
+        PartyBagDB.debug = not PartyBagDB.debug
+        Print(PartyBagDB.debug and L.DEBUG_ON or L.DEBUG_OFF)
+        Debug("player [%s]", tostring(playerName))
     elseif input == "" then
         PrintStatus()
     else
@@ -333,6 +349,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
         end
         OnGroupChanged()
     elseif event == "PLAYER_LOGIN" then
+        PartyBagDB = PartyBagDB or {}
         playerName = UnitName("player")
         C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
         HookTooltips()

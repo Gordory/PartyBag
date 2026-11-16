@@ -5,6 +5,7 @@ max_line_length = false
 exclude_files = { ".worktrees/**", "**/._*", "Libs/**" }
 
 globals = {
+    "PartyBagDB",
     "SLASH_PARTYBAG1",
     "SLASH_PARTYBAG2",
     "SlashCmdList",
