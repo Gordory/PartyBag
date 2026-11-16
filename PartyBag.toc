@@ -4,6 +4,7 @@
 ## Notes: Shows how many of an item your party members carry in their bags.
 ## Notes-ruRU: Показывает в тултипе, сколько таких предметов в сумках у членов группы.
 ## Version: @project-version@
+## SavedVariables: PartyBagDB
 
 Libs\LibStub\LibStub.lua
 Libs\AceLocale-3.0\AceLocale-3.0.xml
@@ -11,5 +12,9 @@ Libs\AceLocale-3.0\AceLocale-3.0.xml
 Locales\enUS.lua
 Locales\ruRU.lua
 
+Names.lua
+Rows.lua
+Bags.lua
 Protocol.lua
 Core.lua
+Options.lua

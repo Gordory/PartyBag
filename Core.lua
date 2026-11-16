@@ -1,5 +1,8 @@
 local _, ns = ...
 local Protocol = ns.Protocol
+local Names = ns.Names
+local Rows = ns.Rows
+local Bags = ns.Bags
 
 local PREFIX = "PartyBag"
 -- Looting fires BAG_UPDATE_DELAYED in bursts; waiting lets one snapshot cover the whole burst.
@@ -9,10 +12,16 @@ local SEND_INTERVAL = 0.2
 
 local L = LibStub("AceLocale-3.0"):GetLocale("PartyBag")
 
+ns.DEFAULTS = { showHeader = false, showSelf = false, mode = "SHORT" }
+
 local playerName
 local peers = {}   -- [name] = { [itemID] = count }
 local pending = {} -- [name] = { seq, total, received, counts }
 local roster = {}  -- [name] = classFile
+-- The client rebuilds item tooltips several times a second, so rows are built once per item and reused.
+local rowCache = {} -- [itemID] = { { name, count, r, g, b } }
+-- Shared by the broadcast and the own tooltip row; dropped on every bag change so one scan serves both.
+local selfCounts
 local wasInGroup = false
 local lastSent
 local seq = 0
@@ -23,6 +32,18 @@ local queueTicker
 
 local function Print(text)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99PartyBag|r: " .. text)
+end
+
+-- Brackets expose stray whitespace or realm suffixes that would otherwise look identical in chat.
+local function Debug(fmt, ...)
+    if PartyBagDB and PartyBagDB.debug then
+        Print("|cff999999debug|r " .. fmt:format(...))
+    end
+end
+
+local function InvalidateRows(reason)
+    Debug("rows reset: %s", reason)
+    wipe(rowCache)
 end
 
 local function NormalizeName(name)
@@ -56,16 +77,18 @@ local function GetSlotItem(bag, slot)
 end
 
 local function ScanBags()
-    local counts = {}
-    for bag = 0, NUM_BAG_SLOTS do
-        for slot = 1, GetNumSlots(bag) or 0 do
-            local itemID, count = GetSlotItem(bag, slot)
-            if itemID then
-                counts[itemID] = (counts[itemID] or 0) + (count or 1)
-            end
-        end
+    return Bags.Scan(Bags.LastIndex(NUM_BAG_SLOTS, NUM_TOTAL_EQUIPPED_BAG_SLOTS), GetNumSlots, GetSlotItem)
+end
+
+local function GetSelfCounts()
+    if not selfCounts then
+        selfCounts = ScanBags()
     end
-    return counts
+    return selfCounts
+end
+
+function ns.OnSettingsChanged()
+    InvalidateRows("settings")
 end
 
 local function PumpQueue()
@@ -104,7 +127,7 @@ local function Broadcast()
     if not GroupChannel() then
         return
     end
-    local tokens = Protocol.Serialize(ScanBags())
+    local tokens = Protocol.Serialize(GetSelfCounts())
     local signature = table.concat(tokens, ",")
     if not force and signature == lastSent then
         return
@@ -129,6 +152,7 @@ end
 
 local function RefreshRoster()
     wipe(roster)
+    InvalidateRows("roster")
     local unknown = false
     local prefix, count = "party", GetNumSubgroupMembers()
     if IsInRaid() then
@@ -136,12 +160,14 @@ local function RefreshRoster()
     end
     for i = 1, count do
         local unit = prefix .. i
-        local name = GetUnitName(unit, true)
+        local name = Names.FromParts(UnitFullName(unit))
         if not name or name == UNKNOWNOBJECT then
+            Debug("roster %s: not resolved yet", unit)
             unknown = true
         else
             local _, classFile = UnitClass(unit)
-            roster[NormalizeName(name)] = classFile or true
+            Debug("roster %s: [%s], class %s", unit, name, tostring(classFile))
+            roster[name] = classFile or true
         end
     end
     -- Names resolve lazily after a roster change; pruning now would wipe valid peers.
@@ -166,6 +192,7 @@ local function OnGroupChanged()
         wipe(peers)
         wipe(pending)
         wipe(roster)
+        InvalidateRows("left group")
         wipe(queue)
         lastSent = nil
         wasInGroup = false
@@ -192,8 +219,10 @@ local function OnSnapshotChunk(sender, message)
     Protocol.DecodePayload(message.payload, state.counts)
     state.received = message.idx
     if state.received == state.total then
+        Debug("snapshot complete from [%s]", sender)
         peers[sender] = state.counts
         pending[sender] = nil
+        InvalidateRows("snapshot")
     end
 end
 
@@ -203,12 +232,15 @@ local function OnAddonMessage(prefix, text, _, sender)
     end
     local name = NormalizeName(sender)
     if not name or name == playerName then
+        Debug("drop self [%s] -> [%s], player [%s]", tostring(sender), tostring(name), tostring(playerName))
         return
     end
     local message = Protocol.Parse(text)
     if not message then
+        Debug("drop unparsed from [%s]: %s", name, text)
         return
     end
+    Debug("recv %s from [%s] -> [%s], player [%s]", message.kind, sender, name, tostring(playerName))
     if message.kind == "R" then
         -- Jitter spreads replies so a whole raid does not answer in the same frame.
         ScheduleBroadcast(1 + math.random() * 1.5, true)
@@ -217,35 +249,50 @@ local function OnAddonMessage(prefix, text, _, sender)
     end
 end
 
+local function ClassColor(classFile)
+    local color = RAID_CLASS_COLORS[classFile]
+    if color then
+        return color.r, color.g, color.b
+    end
+    return 1, 1, 1
+end
+
+local function BuildRows(itemID)
+    local showSelf = PartyBagDB.showSelf
+    local rows = Rows.Build(peers, itemID, {
+        full = PartyBagDB.mode == "FULL",
+        selfName = showSelf and playerName or nil,
+        selfCounts = showSelf and GetSelfCounts() or nil,
+    })
+    local _, selfClass = UnitClass("player")
+    for _, row in ipairs(rows) do
+        local classFile = row.name == playerName and selfClass or roster[row.name]
+        Debug("tooltip item %d: [%s] = %d, class %s", itemID, row.name, row.count, tostring(classFile))
+        row.r, row.g, row.b = ClassColor(classFile)
+        row.label = Rows.Colorize(row.name, row.r, row.g, row.b)
+    end
+    return rows
+end
+
 local function AddTooltipLines(tooltip, itemID)
-    if not itemID or not next(peers) then
+    -- Solo there is nobody to compare with, so even the own row would only repeat the bag count.
+    if not itemID or not IsInGroup() or not (next(peers) or PartyBagDB.showSelf) then
         return
     end
-    local rows = {}
-    for name, counts in pairs(peers) do
-        local count = counts[itemID]
-        if count then
-            rows[#rows + 1] = { name = name, count = count }
-        end
+    local rows = rowCache[itemID]
+    if not rows then
+        rows = BuildRows(itemID)
+        rowCache[itemID] = rows
     end
     if #rows == 0 then
         return
     end
-    table.sort(rows, function(a, b)
-        if a.count ~= b.count then
-            return a.count > b.count
-        end
-        return a.name < b.name
-    end)
     tooltip:AddLine(" ")
-    tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
+    if PartyBagDB.showHeader then
+        tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
+    end
     for _, row in ipairs(rows) do
-        local color = RAID_CLASS_COLORS[roster[row.name]]
-        local r, g, b = 1, 1, 1
-        if color then
-            r, g, b = color.r, color.g, color.b
-        end
-        tooltip:AddDoubleLine(row.name, row.count, r, g, b, 1, 1, 1)
+        tooltip:AddDoubleLine(row.label, row.count, 1, 1, 1, 1, 1, 1)
     end
     tooltip:Show()
 end
@@ -259,8 +306,10 @@ local function HookTooltips()
                 AddTooltipLines(tooltip, data and data.id)
             end
         end)
+        Debug("hook: TooltipDataProcessor")
         return
     end
+    Debug("hook: OnTooltipSetItem")
     local getInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
     for tooltip in pairs(targets) do
         tooltip:HookScript("OnTooltipSetItem", function(self)
@@ -286,7 +335,7 @@ local function PrintStatus()
         for _ in pairs(counts) do
             kinds = kinds + 1
         end
-        Print(name .. ": " .. kinds)
+        Print("[" .. name .. "]: " .. kinds)
     end
 end
 
@@ -302,6 +351,12 @@ SlashCmdList.PARTYBAG = function(input)
         RequestSnapshots()
         ScheduleBroadcast(0.5, true)
         Print(L.SYNC_REQUESTED)
+    elseif input == "debug" then
+        PartyBagDB.debug = not PartyBagDB.debug
+        Print(PartyBagDB.debug and L.DEBUG_ON or L.DEBUG_OFF)
+        local fullName, fullRealm = UnitFullName("player")
+        Debug("player [%s], full [%s]-[%s], realm [%s], normalized [%s]", tostring(playerName),
+            tostring(fullName), tostring(fullRealm), tostring(GetRealmName()), tostring(GetNormalizedRealmName()))
     elseif input == "" then
         PrintStatus()
     else
@@ -319,6 +374,11 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         OnAddonMessage(...)
     elseif event == "BAG_UPDATE_DELAYED" then
+        selfCounts = nil
+        -- Bags can report in before PLAYER_LOGIN, when saved settings are not set up yet.
+        if PartyBagDB and PartyBagDB.showSelf then
+            InvalidateRows("bags")
+        end
         if IsInGroup() then
             ScheduleBroadcast(BROADCAST_DELAY, false)
         end
@@ -333,8 +393,15 @@ frame:SetScript("OnEvent", function(_, event, ...)
         end
         OnGroupChanged()
     elseif event == "PLAYER_LOGIN" then
-        playerName = UnitName("player")
+        PartyBagDB = PartyBagDB or {}
+        for key, value in pairs(ns.DEFAULTS) do
+            if PartyBagDB[key] == nil then
+                PartyBagDB[key] = value
+            end
+        end
+        playerName = Names.FromParts(UnitFullName("player"))
         C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
         HookTooltips()
+        ns.RegisterOptions()
     end
 end)
