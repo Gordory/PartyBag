@@ -13,6 +13,8 @@ local playerName
 local peers = {}   -- [name] = { [itemID] = count }
 local pending = {} -- [name] = { seq, total, received, counts }
 local roster = {}  -- [name] = classFile
+-- The client rebuilds item tooltips several times a second, so rows are built once per item and reused.
+local rowCache = {} -- [itemID] = { { name, count, r, g, b } }
 local wasInGroup = false
 local lastSent
 local seq = 0
@@ -136,6 +138,7 @@ end
 
 local function RefreshRoster()
     wipe(roster)
+    wipe(rowCache)
     local unknown = false
     local prefix, count = "party", GetNumSubgroupMembers()
     if IsInRaid() then
@@ -174,6 +177,7 @@ local function OnGroupChanged()
         wipe(peers)
         wipe(pending)
         wipe(roster)
+        wipe(rowCache)
         wipe(queue)
         lastSent = nil
         wasInGroup = false
@@ -203,6 +207,7 @@ local function OnSnapshotChunk(sender, message)
         Debug("snapshot complete from [%s]", sender)
         peers[sender] = state.counts
         pending[sender] = nil
+        wipe(rowCache)
     end
 end
 
@@ -229,20 +234,19 @@ local function OnAddonMessage(prefix, text, _, sender)
     end
 end
 
-local function AddTooltipLines(tooltip, itemID)
-    if not itemID or not next(peers) then
-        return
-    end
+local function BuildRows(itemID)
     local rows = {}
     for name, counts in pairs(peers) do
         local count = counts[itemID]
         if count then
             Debug("tooltip item %d: [%s] = %d", itemID, name, count)
-            rows[#rows + 1] = { name = name, count = count }
+            local color = RAID_CLASS_COLORS[roster[name]]
+            local r, g, b = 1, 1, 1
+            if color then
+                r, g, b = color.r, color.g, color.b
+            end
+            rows[#rows + 1] = { name = name, count = count, r = r, g = g, b = b }
         end
-    end
-    if #rows == 0 then
-        return
     end
     table.sort(rows, function(a, b)
         if a.count ~= b.count then
@@ -250,15 +254,25 @@ local function AddTooltipLines(tooltip, itemID)
         end
         return a.name < b.name
     end)
+    return rows
+end
+
+local function AddTooltipLines(tooltip, itemID)
+    if not itemID or not next(peers) then
+        return
+    end
+    local rows = rowCache[itemID]
+    if not rows then
+        rows = BuildRows(itemID)
+        rowCache[itemID] = rows
+    end
+    if #rows == 0 then
+        return
+    end
     tooltip:AddLine(" ")
     tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
     for _, row in ipairs(rows) do
-        local color = RAID_CLASS_COLORS[roster[row.name]]
-        local r, g, b = 1, 1, 1
-        if color then
-            r, g, b = color.r, color.g, color.b
-        end
-        tooltip:AddDoubleLine(row.name, row.count, r, g, b, 1, 1, 1)
+        tooltip:AddDoubleLine(row.name, row.count, row.r, row.g, row.b, 1, 1, 1)
     end
     tooltip:Show()
 end
