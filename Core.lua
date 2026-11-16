@@ -318,8 +318,20 @@ local function AddTooltipLines(tooltip, itemID)
     for _, row in ipairs(rows) do
         tooltip:AddDoubleLine(row.name, row.count, row.r, row.g, row.b, 1, 1, 1)
     end
-    ProbeRowColor(tooltip, tooltip:NumLines() - #rows + 1, rows)
+    local firstLine = tooltip:NumLines() - #rows + 1
+    local probeNow = PartyBagDB.debug and not colorCheckPending
+    local function ReadNow(stage)
+        local line = _G[tooltip:GetName() .. "TextLeft" .. (firstLine + #rows - 1)]
+        Debug("probe %s line %d = %.2f %.2f %.2f", stage, firstLine + #rows - 1, line:GetTextColor())
+    end
+    if probeNow then
+        ReadNow("after add")
+    end
+    ProbeRowColor(tooltip, firstLine, rows)
     tooltip:Show()
+    if probeNow then
+        ReadNow("after show")
+    end
 end
 
 local function HookTooltips()
