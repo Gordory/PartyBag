@@ -269,6 +269,7 @@ local function BuildRows(itemID)
         local classFile = row.name == playerName and selfClass or roster[row.name]
         Debug("tooltip item %d: [%s] = %d, class %s", itemID, row.name, row.count, tostring(classFile))
         row.r, row.g, row.b = ClassColor(classFile)
+        row.label = Rows.Colorize(row.name, row.r, row.g, row.b)
     end
     return rows
 end
@@ -316,7 +317,7 @@ local function AddTooltipLines(tooltip, itemID)
         tooltip:AddLine(L.TOOLTIP_HEADER, 0.2, 1, 0.6)
     end
     for _, row in ipairs(rows) do
-        tooltip:AddDoubleLine(row.name, row.count, row.r, row.g, row.b, 1, 1, 1)
+        tooltip:AddDoubleLine(row.label, row.count, 1, 1, 1, 1, 1, 1)
     end
     local firstLine = tooltip:NumLines() - #rows + 1
     local probeNow = PartyBagDB.debug and not colorCheckPending

@@ -29,3 +29,12 @@ function Rows.Build(peers, itemID, options)
     table.sort(rows, ByCountThenName)
     return rows
 end
+
+local function Channel(value)
+    return math.floor(value * 255 + 0.5)
+end
+
+-- The client's tooltip refresh resets line colors set through AddDoubleLine, but not colors inside the text.
+function Rows.Colorize(text, r, g, b)
+    return ("|cff%02x%02x%02x%s|r"):format(Channel(r), Channel(g), Channel(b), text)
+end
