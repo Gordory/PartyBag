@@ -148,6 +148,7 @@ local function RefreshRoster()
             unknown = true
         else
             local _, classFile = UnitClass(unit)
+            Debug("roster %s: [%s] -> [%s], class %s", unit, name, NormalizeName(name), tostring(classFile))
             roster[NormalizeName(name)] = classFile or true
         end
     end
