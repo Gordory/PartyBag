@@ -63,6 +63,7 @@ lua tests/bags_test.lua
 ## Releasing to CurseForge
 
 CurseForge Automatic Packaging builds and publishes the addon on a GitHub webhook, following `.pkgmeta`.
+Release notes are taken from `CHANGELOG.md`, so add a section for the new version before tagging.
 A release is a pushed tag:
 
 ```sh
