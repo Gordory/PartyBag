@@ -317,7 +317,9 @@ SlashCmdList.PARTYBAG = function(input)
     elseif input == "debug" then
         PartyBagDB.debug = not PartyBagDB.debug
         Print(PartyBagDB.debug and L.DEBUG_ON or L.DEBUG_OFF)
-        Debug("player [%s]", tostring(playerName))
+        local fullName, fullRealm = UnitFullName("player")
+        Debug("player [%s], full [%s]-[%s], realm [%s], normalized [%s]", tostring(playerName),
+            tostring(fullName), tostring(fullRealm), tostring(GetRealmName()), tostring(GetNormalizedRealmName()))
     elseif input == "" then
         PrintStatus()
     else
