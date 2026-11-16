@@ -1,5 +1,6 @@
 local _, ns = ...
 local Protocol = ns.Protocol
+local Names = ns.Names
 
 local PREFIX = "PartyBag"
 -- Looting fires BAG_UPDATE_DELAYED in bursts; waiting lets one snapshot cover the whole burst.
@@ -146,13 +147,13 @@ local function RefreshRoster()
     end
     for i = 1, count do
         local unit = prefix .. i
-        local name = GetUnitName(unit, true)
+        local name = Names.FromParts(UnitFullName(unit))
         if not name or name == UNKNOWNOBJECT then
             unknown = true
         else
             local _, classFile = UnitClass(unit)
-            Debug("roster %s: [%s] -> [%s], class %s", unit, name, NormalizeName(name), tostring(classFile))
-            roster[NormalizeName(name)] = classFile or true
+            Debug("roster %s: [%s], class %s", unit, name, tostring(classFile))
+            roster[name] = classFile or true
         end
     end
     -- Names resolve lazily after a roster change; pruning now would wipe valid peers.
@@ -367,7 +368,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
         OnGroupChanged()
     elseif event == "PLAYER_LOGIN" then
         PartyBagDB = PartyBagDB or {}
-        playerName = UnitName("player")
+        playerName = Names.FromParts(UnitFullName("player"))
         C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
         HookTooltips()
     end

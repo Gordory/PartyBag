@@ -41,6 +41,12 @@ luacheck .
 `.luacheckrc` targets Lua 5.1 (the WoW runtime) and whitelists the client API the addon uses;
 add new API globals there when the code starts using them.
 
+Pure modules (`Names.lua`, no WoW API calls) have plain-`assert` tests, run from the repo root:
+
+```sh
+lua tests/names_test.lua
+```
+
 ## Releasing to CurseForge
 
 CurseForge Automatic Packaging builds and publishes the addon on a GitHub webhook, following `.pkgmeta`.

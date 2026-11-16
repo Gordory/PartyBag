@@ -29,7 +29,6 @@ read_globals = {
     "GetNumSubgroupMembers",
     "GetNormalizedRealmName",
     "GetRealmName",
-    "GetUnitName",
     "IsInGroup",
     "IsInRaid",
     "LibStub",
@@ -42,7 +41,6 @@ read_globals = {
     "UNKNOWNOBJECT",
     "UnitClass",
     "UnitFullName",
-    "UnitName",
     "strtrim",
     "wipe",
 }
